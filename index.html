@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Așezare Alex & Iza">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F2E9">
+<title>Așezare invitați — Nuntă Alex &amp; Iza</title>
+
+<!-- =====================================================================
+     CUM ACTUALIZEZ ACEST FIȘIER  (ghid pentru editare — fără cunoștințe tehnice)
+     =====================================================================
+     Tot ce poți edita este în <script>, în „PARTEA 1 — DATE" (marcată cu 👉).
+     NU atinge nimic din „PARTEA 2 — MOTORUL". După ce salvezi, redeschide
+     fișierul: harta, listele, căutarea și totalurile se recalculează singure.
+
+     • ADAUGI un invitat  → copiază un rând întreg din GUESTS și schimbă-l.
+         { name:"Nume Prenume", pers:2, masa:5 }
+           name = numele afișat · pers = câte persoane · masa = nr. mesei
+     • MUȚI pe cineva       → schimbă DOAR numărul de la „masa".
+     • ȘTERGI pe cineva     → șterge tot rândul lui (cu virgula de la final).
+     • REORDONEZI            → mută rândul mai sus/jos în listă.
+     • masa 0                = Masa Mirilor (capul sălii).
+
+     • SCHIMBI AȘEZAREA MESELOR PE HARTĂ → editezi FLOOR (mesele grupate „ca pe
+         zar", câte 5).  "F" = Masa 22 (Formație) · "S" = Masa 25 (Staff) ·
+         null = loc gol.  Scena formației apare automat între cele 2 zaruri din
+         dreapta — nu trebuie s-o adaugi tu.
+     • MESELE DE STAFF       → editezi STAFF (titlu / membri).
+
+     VERIFICARE: după editare, uită-te la numărul de „persoane" din capul paginii.
+     Dacă apare o bară roșie sus, ai o greșeală (un invitat la o masă inexistentă
+     sau o masă pusă de două ori pe hartă) — mesajul îți spune exact unde.
+
+     Fișierul e complet (design + cod) într-un singur .html → se poate trimite
+     ca atare colegilor care ajută la intrare.
+     ===================================================================== -->
+
+<style>
+/* =====================================================================
+   CUPRINS CSS
+   0 Fonturi · 1 Tokens · 2 Bază · 3 Antet · 4 Căutare+tab-uri ·
+   5 Legendă culori + ajutor · 6 Rezultate căutare · 7 Hartă/sală ·
+   8 Nod masă · 9 Liste mese · 10 Detaliu masă (sheet) · 11 Notă jos ·
+   12 Responsive · 13 Print
+   ===================================================================== */
+
+/* ---- 0 · FONTURI (online; offline cad pe fonturi de sistem) ---- */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500;600&display=swap');
+
+/* ---- 1 · DESIGN TOKENS ---- */
+:root{
+  color-scheme:light;
+  /* suprafețe */
+  --bg:#F7F2E9; --card:#FFFFFF; --card2:#FFFDF8;
+  /* text (contrast AA) */
+  --ink:#2E2A22; --name:#39342B; --muted:#7A6E55; --faint:#8C7F62; --cap:#6E6248;
+  /* accente */
+  --gold:#B28A35; --gold-d:#8A6A1F; --gold-l:#E9D196; --gold-soft:#F3E6C4;
+  --sage:#79926A; --sage-d:#566F44;
+  --rose:#B26B55;
+  --plum:#7A6A93; --plum-l:#ECE6F3;
+  /* linii & umpluturi */
+  --line:#ECE3D1; --line-2:#E0D5BC; --soft:#F4ECDB; --head-bg:#FBEFCB;
+  /* fonturi */
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  --sans:'Jost',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  /* umbre */
+  --sh-sm:0 1px 2px rgba(74,55,16,.05), 0 1px 3px rgba(74,55,16,.04);
+  --sh:0 2px 6px rgba(74,55,16,.06), 0 8px 20px rgba(74,55,16,.07);
+  --sh-lg:0 4px 12px rgba(74,55,16,.07), 0 20px 48px rgba(74,55,16,.12);
+  --ring:0 0 0 3px rgba(178,138,53,.30);
+  /* formă & ritm */
+  --r:18px; --r-sm:12px; --r-xs:9px; --maxw:1120px;
+  /* mișcare */
+  --ease:cubic-bezier(.22,.61,.36,1); --dur:.2s;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+::selection{background:var(--gold-l); color:var(--ink)}
+
+/* ---- 2 · BAZĂ ---- */
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.5; letter-spacing:.1px;
+  background:
+    radial-gradient(60% 40% at 10% 0%, #FCF8F0 0%, transparent 60%),
+    radial-gradient(55% 45% at 92% 100%, #F3EAD7 0%, transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  padding:0 clamp(10px,3vw,40px) 56px;
+}
+.page{max-width:var(--maxw); margin:0 auto}
+h1,h2,h3{font-family:var(--serif); font-weight:600; margin:0; line-height:1.1}
+:focus-visible{outline:3px solid var(--gold-d); outline-offset:2px; border-radius:6px}
+.visually-hidden{position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+.datawarn{background:#FFF4F0; border:1px solid #E6B6A6; color:#963A21; padding:12px 16px; border-radius:12px;
+  margin:14px auto; max-width:var(--maxw); font-size:13.5px; text-align:center; line-height:1.5}
+
+/* ---- 3 · ANTET ---- */
+header{text-align:center; padding:clamp(22px,5vw,42px) 0 6px}
+.kicker{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-d); font-weight:500}
+.monogram{font-family:var(--serif); font-weight:600; letter-spacing:.5px; margin:8px 0 2px;
+  font-size:clamp(40px,8vw,72px); line-height:1; color:var(--ink)}
+.monogram .amp{color:var(--gold); font-style:italic; font-weight:500; padding:0 .12em}
+.subtitle{color:var(--muted); font-size:13px; letter-spacing:.14em; text-transform:uppercase; margin-top:10px}
+.flourish{display:flex; align-items:center; justify-content:center; gap:14px; margin:22px auto 0; color:var(--gold)}
+.flourish::before,.flourish::after{content:""; height:1px; width:clamp(40px,12vw,96px);
+  background:linear-gradient(90deg,transparent,var(--gold-l),var(--gold))}
+.flourish::after{background:linear-gradient(90deg,var(--gold),var(--gold-l),transparent)}
+.flourish .dot{font-size:15px}
+.stats{display:flex; gap:clamp(7px,1.6vw,14px); justify-content:center; flex-wrap:wrap; margin:24px auto 4px; max-width:660px}
+.stat{background:var(--card); border:1px solid var(--line); border-radius:var(--r-sm);
+  padding:12px 18px; min-width:86px; text-align:center; box-shadow:var(--sh-sm)}
+.stat b{display:block; font-family:var(--serif); font-size:28px; font-weight:700; color:var(--gold-d); line-height:1}
+.stat span{display:block; font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.14em; margin-top:5px}
+.stat.staff b{color:var(--sage-d)}
+
+/* ---- 4 · CĂUTARE + TAB-URI ---- */
+/* DOAR bara de căutare e sticky; restul (subcontrols) curge normal la scroll */
+.controls{position:sticky; top:0; z-index:50; padding:14px 0 12px; margin-top:14px;
+  background:linear-gradient(var(--bg) 90%, rgba(247,242,233,0))}
+.controls .inner, .subcontrols .inner{max-width:680px; margin:0 auto}
+.subcontrols{padding:0 0 16px}
+.searchbar{display:flex; align-items:center; gap:11px; background:var(--card);
+  border:1.5px solid var(--gold-l); border-radius:40px; padding:14px 20px; box-shadow:var(--sh)}
+.searchbar:focus-within{border-color:var(--gold); box-shadow:var(--ring), var(--sh)}
+.searchbar .ic{flex:none; display:flex; color:var(--gold-d)}
+.searchbar input{border:0; outline:0; font-size:16px; flex:1; min-width:0; background:transparent; color:var(--ink); font-family:var(--sans)}
+/* ascunde butonul „×" nativ al browserului (păstrăm doar pe al nostru) */
+.searchbar input::-webkit-search-cancel-button{-webkit-appearance:none; appearance:none; display:none}
+.searchbar input::-webkit-search-decoration{-webkit-appearance:none; appearance:none}
+.searchbar input::-ms-clear{display:none; width:0; height:0}
+.searchbar input::placeholder{color:var(--muted); opacity:.75}
+.searchbar .clr{flex:none; appearance:none; border:0; cursor:pointer; color:var(--muted); font-size:16px;
+  width:30px; height:30px; border-radius:50%; display:none; align-items:center; justify-content:center; background:var(--soft)}
+.searchbar .clr.on{display:flex}
+.tabs{display:flex; gap:10px; justify-content:center; margin-top:14px}
+.tab{flex:1; max-width:220px; appearance:none; font-family:inherit; text-align:center; padding:12px; border-radius:var(--r-xs);
+  border:1px solid var(--line-2); background:var(--card); font-size:14px; font-weight:500; color:var(--muted);
+  cursor:pointer; box-shadow:var(--sh-sm); transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur)}
+.tab:hover{color:var(--ink)}
+.tab.on{background:var(--ink); color:#fff; border-color:var(--ink); box-shadow:var(--sh)}
+
+/* ---- 5 · LEGENDĂ CULORI + AJUTOR ---- */
+.key{display:flex; flex-wrap:wrap; gap:7px 16px; justify-content:center; margin:14px auto 0; max-width:700px;
+  font-size:12px; color:var(--cap)}
+.key span{display:inline-flex; align-items:center; gap:6px}
+.key i{width:12px; height:12px; border-radius:50%; display:inline-block; flex:none}
+.key i.d{background:var(--card); border:1.5px dashed var(--faint)}
+#viewhint{text-align:center; color:var(--muted); font-size:12.5px; margin:12px auto 0; max-width:780px; line-height:1.5}
+body.view-list .key{display:none}                              /* legenda de culori apare doar pe hartă */
+
+/* ---- 6 · REZULTATE CĂUTARE ---- */
+#results{display:none; max-width:760px; margin:8px auto 0}
+.res-head{font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); text-align:center; margin:4px 0 12px}
+.res{width:100%; appearance:none; font-family:inherit; text-align:left; cursor:pointer; color:var(--ink);
+  background:var(--card); border:1px solid var(--line); border-left:3px solid var(--gold); border-radius:var(--r-sm);
+  min-height:64px; padding:13px 14px 13px 18px; margin-bottom:9px; box-shadow:var(--sh-sm);
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease)}
+.res:hover{box-shadow:var(--sh); transform:translateY(-1px)}
+.res .res-tx{min-width:0}
+.res .nm{font-size:17px; font-weight:500; color:var(--name)}
+.res .meta{font-size:12.5px; color:var(--muted); margin-top:2px}
+.res .badge{flex:none; min-width:84px; text-align:center; padding:7px 10px 9px; border-radius:var(--r-sm);
+  background:var(--gold); color:#fff}
+.res .badge.h{background:linear-gradient(135deg,var(--gold),var(--gold-d))}
+.res .badge.s{background:linear-gradient(135deg,var(--sage),var(--sage-d))}
+.res .badge span{display:block; font-size:9px; letter-spacing:.15em; text-transform:uppercase; opacity:.9; margin-bottom:1px}
+.res .badge b{display:block; font-family:var(--serif); font-size:32px; font-weight:700; line-height:.95}
+.res .chev{flex:none; color:var(--gold-d); font-size:22px; line-height:1; margin-left:-2px}
+.nores{text-align:center; color:var(--muted); padding:34px 16px; font-size:15px; line-height:1.5}
+.nores .big{font-size:30px; display:block; margin-bottom:8px; opacity:.5}
+mark{background:var(--gold-soft); color:inherit; border-radius:2px; box-shadow:inset 0 -2px 0 var(--gold-l)}
+
+/* ---- 7 · HARTĂ / SALĂ ---- */
+.room{position:relative; background:linear-gradient(180deg,#FFFDF8,#FAF3E5); border:1px solid var(--line);
+  border-radius:26px; padding:clamp(16px,2.4vw,30px) clamp(8px,1.8vw,26px) clamp(18px,2.4vw,28px); box-shadow:var(--sh-lg)}
+.room::before{content:""; position:absolute; inset:10px; border:1px solid rgba(178,138,53,.13); border-radius:20px; pointer-events:none}
+/* sus: Masa Mirilor */
+.topzone{position:relative; margin-bottom:clamp(14px,2.2vw,24px)}
+.anchor{text-align:center; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--cap); margin:0 0 9px}
+.anchor::before,.anchor::after{content:"·"; padding:0 8px; color:var(--gold-l)}
+.headbar{display:block; width:100%; max-width:540px; margin:0 auto; text-align:center; position:relative; cursor:pointer; appearance:none; font-family:inherit;
+  border:1.5px solid var(--gold); border-radius:var(--r); background:linear-gradient(180deg,#FFFDF5,var(--head-bg));
+  padding:14px 18px 16px; box-shadow:0 2px 6px rgba(138,106,31,.10), 0 14px 30px rgba(138,106,31,.13);
+  transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease)}
+.headbar:hover{transform:translateY(-2px)}
+.headbar::after{content:""; position:absolute; inset:5px; border:1px solid rgba(178,138,53,.4); border-radius:13px; pointer-events:none}
+.headbar .crown{font-size:22px; color:var(--gold-d); line-height:1}
+.headbar .h-title{font-family:var(--serif); font-size:25px; font-weight:700; color:var(--gold-d); line-height:1; margin-top:2px}
+.headbar .h-meta{font-size:11.5px; color:var(--muted); margin:3px 0 9px; letter-spacing:.02em}
+.headbar .h-people{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+.headbar .chip{background:rgba(178,138,53,.13); color:var(--name); border-radius:20px; padding:5px 13px; font-size:13.5px}
+.headbar.hl{box-shadow:var(--ring), 0 14px 30px rgba(138,106,31,.13)}
+.headbar.dim{opacity:.34}
+/* podea = stânga | horă | dreapta (3 coloane pe orice ecran) */
+.floor{display:grid; grid-template-columns:1fr auto 1fr; gap:clamp(6px,1.8vw,30px); align-items:stretch}
+.floor-col{display:flex; flex-direction:column; align-items:center; gap:clamp(16px,2.4vw,28px); width:100%}
+.floor-col .zone{display:flex; flex-direction:column; gap:inherit; align-items:center; width:100%}
+.col-cap{font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--cap); text-align:center}
+/* un „zar" (quincunx) de mese */
+.cluster{display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:auto auto auto;
+  gap:clamp(7px,1.2vw,12px); width:100%; max-width:320px; margin:0 auto; padding:clamp(8px,1.4vw,16px);
+  background:rgba(178,138,53,.04); border:1px dashed var(--line-2); border-radius:20px}
+.p-tl{grid-area:1/1} .p-tr{grid-area:1/3} .p-c{grid-area:2/2} .p-bl{grid-area:3/1} .p-br{grid-area:3/3}
+/* ring de horă (golul din mijloc, păstrat și pe mobil) */
+.floor-center{display:flex; align-items:stretch}
+.dancefloor{position:relative; flex:1; min-width:clamp(70px,12vw,180px); overflow:hidden;
+  border:2px dashed var(--gold-l); border-radius:60px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:18px; padding:18px 6px;
+  background:
+    radial-gradient(130px 130px at 50% 0%,rgba(178,138,53,.10),transparent 70%),
+    radial-gradient(130px 130px at 50% 100%,rgba(178,138,53,.10),transparent 70%),
+    repeating-linear-gradient(45deg,#FBF5E7,#FBF5E7 11px,#F4EAD2 11px,#F4EAD2 22px)}
+.dancefloor .vt{writing-mode:vertical-rl; text-orientation:mixed; color:var(--gold-d); font-family:var(--serif);
+  letter-spacing:.5em; font-size:14px; font-weight:600; text-transform:uppercase}
+.dancefloor .ring{width:58px; height:58px; border-radius:50%; border:2px dashed var(--rose); flex:none;
+  display:flex; align-items:center; justify-content:center; font-size:19px;
+  background:radial-gradient(closest-side,#fff9f1,#fbeede); box-shadow:0 3px 12px rgba(178,107,85,.2)}
+/* scena formației (bloc de sine stătător, între cele 2 zaruri din dreapta) */
+.sceneblock{position:relative; width:100%; max-width:320px; margin:0 auto; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; text-align:center;
+  min-height:clamp(150px,21vw,248px); padding:18px 12px 14px; border-radius:20px; color:#F6E6BE;
+  background:radial-gradient(130% 120% at 50% -10%,#5e4c2d 0%,#3c3122 50%,#2c241a 100%);
+  box-shadow:inset 0 0 0 1px #6c5930, 0 6px 18px rgba(44,33,12,.28)}
+.sceneblock .sb-glow{position:absolute; top:-50px; left:50%; transform:translateX(-50%);
+  width:170px; height:120px; background:radial-gradient(closest-side,rgba(255,236,180,.4),transparent); filter:blur(6px)}
+.sceneblock .sb-title{position:relative; font-family:var(--serif); font-size:23px; font-weight:700; color:#ECCB7C; line-height:1}
+.sceneblock .sb-sub{position:relative; font-size:10px; letter-spacing:.25em; text-transform:uppercase; color:#cdb98a}
+.sceneblock .sb-pods{position:relative; display:flex; gap:7px; flex-wrap:wrap; justify-content:center; margin-top:6px}
+.sceneblock .sb-pods span{display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:9px;
+  font-size:17px; background:linear-gradient(180deg,#fbf4e6,#e9dabc); box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.sceneblock .sb-edge{position:relative; width:72%; height:7px; border-radius:0 0 10px 10px; margin-top:11px;
+  background:repeating-linear-gradient(90deg,#c9a759,#c9a759 12px,#a78536 12px,#a78536 24px)}
+.sceneblock .sb-foot{position:relative; font-size:8.5px; letter-spacing:.25em; text-transform:uppercase; color:#d8c290; margin-top:6px}
+/* intrare */
+.entrance{max-width:680px; margin:clamp(14px,2.4vw,24px) auto 0; text-align:center; border:1.5px dashed var(--sage);
+  border-radius:14px; padding:11px; color:var(--sage-d); font-size:12.5px; letter-spacing:.12em; text-transform:uppercase; background:#F4F7F0}
+
+/* ---- 8 · NOD MASĂ (compact, pe hartă) ---- */
+.node{appearance:none; font-family:inherit; cursor:pointer; color:var(--ink);
+  display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; width:100%;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-sm); padding:9px 4px 8px; box-shadow:var(--sh-sm);
+  transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur)}
+.node:hover{transform:translateY(-2px); box-shadow:var(--sh)}
+.node:active{transform:translateY(0) scale(.985)}
+.node.hl{border-color:var(--gold); box-shadow:var(--ring), var(--sh)}
+.node.dim{opacity:.28}
+.node .med{display:block; line-height:0; width:clamp(38px,9vw,48px)}
+.node .med svg{width:100%; height:auto; display:block}
+.node-lbl{font-family:var(--serif); font-weight:700; font-size:14.5px; line-height:1.05}
+.node-sub{font-size:10.5px; color:var(--muted); letter-spacing:.01em}
+.node.kind-formatie{border-color:#D8CEE6; background:linear-gradient(#FDFCFF,#F3EFFA)}
+.node.kind-formatie .node-lbl{color:var(--plum)}
+.node.kind-staff{border-color:#CADCD0; background:linear-gradient(#FCFEFC,#EEF5EF)}
+.node.kind-staff .node-lbl{color:var(--sage-d)}
+.node.empty{border-style:dashed; background:#FCFBF6}
+.node.empty .node-lbl{color:var(--muted); font-style:italic}
+.node.empty .node-sub{color:var(--faint)}
+
+/* ---- 9 · LISTE MESE ---- */
+#vlist{display:none}
+#listHead{max-width:440px; margin:0 auto 18px}                 /* Masa Mirilor centrată sus, în lista pe mese */
+.listbar{display:flex; justify-content:flex-end; max-width:var(--maxw); margin:0 auto 12px}
+#toggleAll{appearance:none; font-family:inherit; cursor:pointer; background:var(--card); border:1px solid var(--line-2);
+  color:var(--gold-d); border-radius:var(--r-xs); padding:9px 15px; font-size:13px; font-weight:500; box-shadow:var(--sh-sm)}
+.listgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr)); gap:15px}
+.tbl{background:var(--card); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; box-shadow:var(--sh-sm); align-self:start}
+.tbl.head2{border:1.5px solid var(--gold)}
+.tbl.staff2{border:1.5px solid #CADCD0}
+.tbl.hide{display:none}
+.thead{display:flex; align-items:center; gap:12px; padding:14px 16px; cursor:pointer;
+  background:linear-gradient(90deg,#FBF4E2,#F6EBCF); color:var(--gold-d)}
+.tbl.head2 .thead{background:linear-gradient(90deg,#F6E7BE,#FBEFCB)}
+.tbl.staff2 .thead{background:linear-gradient(90deg,#EAF1E7,#F1F6EE); color:var(--sage-d)}
+.thead .tnum{flex:none; min-width:36px; height:36px; padding:0 8px; border-radius:18px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--serif); font-weight:700; font-size:18px; background:var(--gold); color:#fff}
+.tbl.staff2 .thead .tnum{background:var(--sage-d)}
+.thead .ttx{flex:1; min-width:0}
+.thead .ttl{font-family:var(--serif); font-size:20px; font-weight:600; display:block; line-height:1.05}
+.thead .rt{font-size:11.5px; opacity:.9}
+.thead .chev{flex:none; transition:transform var(--dur); opacity:.85; font-size:13px}
+.tbl.open .thead .chev{transform:rotate(180deg)}
+.tbody{display:none; padding:4px 10px 8px}
+.tbl.open .tbody{display:block}
+.grow{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 8px; border-bottom:1px solid var(--soft)}
+.grow:last-child{border-bottom:0}
+.grow .gn{font-size:15.5px; color:var(--name); overflow-wrap:anywhere}
+.grow .gp{font-size:12px; color:var(--muted); flex:none; background:var(--soft); border-radius:20px; padding:3px 10px; white-space:nowrap; font-variant-numeric:tabular-nums}
+.grow.match{background:#FBF3D9; border-radius:8px}
+.grow.empty .gn{color:var(--muted); font-style:italic}
+
+/* ---- 10 · DETALIU MASĂ (sheet) ---- */
+#sheet{position:fixed; inset:0; z-index:200; visibility:hidden; opacity:0;
+  transition:opacity var(--dur) var(--ease), visibility var(--dur)}
+#sheet.on{visibility:visible; opacity:1}
+.sheet-bg{position:absolute; inset:0; background:rgba(44,33,12,.42)}
+.sheet-card{position:absolute; left:50%; bottom:0; transform:translateX(-50%) translateY(14px); width:100%; max-width:480px;
+  background:var(--card); border-radius:22px 22px 0 0; box-shadow:0 -10px 40px rgba(0,0,0,.28);
+  padding:20px 20px 28px; max-height:84vh; max-height:84dvh; overflow:auto; transition:transform var(--dur) var(--ease)}
+#sheet.on .sheet-card{transform:translateX(-50%) translateY(0)}
+@media(min-width:560px){
+  .sheet-card{bottom:auto; top:50%; transform:translate(-50%,-46%); border-radius:22px}
+  #sheet.on .sheet-card{transform:translate(-50%,-50%)}
+}
+.sheet-x{position:absolute; top:10px; right:10px; width:40px; height:40px; appearance:none; border:0; border-radius:50%; cursor:pointer;
+  background:var(--soft); color:var(--muted); font-size:16px}
+.sheet-head{display:flex; gap:13px; align-items:center; padding-right:44px}
+.sheet-ic{flex:none; min-width:48px; height:48px; padding:0 8px; border-radius:24px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--serif); font-weight:700; font-size:23px; background:var(--soft); color:var(--ink)}
+.sheet-ic.kind-head{background:linear-gradient(135deg,var(--gold),var(--gold-d)); color:#fff}
+.sheet-ic.kind-formatie{background:var(--plum-l); color:var(--plum)}
+.sheet-ic.kind-staff{background:#E6F0E8; color:var(--sage-d)}
+.sheet-title{font-family:var(--serif); font-size:23px; font-weight:700; line-height:1.05}
+.sheet-meta{font-size:12.5px; color:var(--muted); margin-top:2px}
+.sheet-list{list-style:none; margin:16px 0 0; padding:0}
+.sheet-list li{display:flex; justify-content:space-between; gap:12px; padding:12px 4px; border-bottom:1px solid var(--soft); font-size:15.5px; color:var(--name)}
+.sheet-list li:last-child{border-bottom:0}
+.sheet-list .ct{flex:none; color:var(--muted); font-size:12px; background:var(--soft); border-radius:20px; padding:3px 10px}
+
+/* ---- 11 · NOTĂ JOS ---- */
+.legend{text-align:center; color:var(--muted); font-size:13px; line-height:1.6; margin:30px auto 0; max-width:860px;
+  padding:18px 22px; background:var(--card2); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--sh-sm)}
+.legend b{color:var(--ink); font-weight:500}
+.legend-fl{color:var(--gold); font-size:15px; margin-bottom:8px}
+
+/* ---- 12 · RESPONSIVE (podeaua cu 3 coloane se păstrează pe orice ecran) ---- */
+@media (max-width:880px){
+  .room{padding:16px 7px 18px; border-radius:20px}
+  .room::before{inset:7px; border-radius:15px}
+  .floor{gap:6px}
+  .floor-col{gap:14px}
+  .cluster{max-width:none; padding:8px 5px; gap:7px; border-radius:14px}
+  .dancefloor{min-width:48px; border-radius:34px; gap:12px; padding:14px 3px}
+  .dancefloor .vt{letter-spacing:.2em; font-size:11px}
+  .dancefloor .ring{width:44px; height:44px; font-size:15px}
+  .stat{padding:11px 13px; min-width:78px}
+  .stat b{font-size:23px}
+}
+@media (max-width:880px) and (min-width:621px){
+  .node-lbl{font-size:13px}
+  .node-sub{font-size:9.5px; letter-spacing:0}
+}
+@media (max-width:620px){
+  /* hartă compactă: numărul din medalion e suficient — detalii la atingere */
+  .node{min-height:48px; padding:6px 2px; gap:2px; justify-content:center; border-radius:10px}
+  .node-lbl, .node-sub{display:none}
+  .node .med{width:clamp(34px,11vw,42px)}
+  .cluster{padding:6px 3px; gap:5px; border-radius:12px}
+  .col-cap{font-size:8.5px; letter-spacing:.1em}
+  .dancefloor{min-width:34px; gap:8px; padding:12px 2px; border-radius:26px}
+  .dancefloor .ring{width:32px; height:32px; font-size:13px}
+  .dancefloor .vt{font-size:9px; letter-spacing:.12em}
+  .sceneblock{min-height:118px; padding:11px 5px; border-radius:12px; gap:3px}
+  .sceneblock .sb-title{font-size:15px}
+  .sceneblock .sb-sub, .sceneblock .sb-foot, .sceneblock .sb-edge{display:none}
+  .sceneblock .sb-pods{gap:4px; margin-top:3px}
+  .sceneblock .sb-pods span{width:23px; height:23px; font-size:12px; border-radius:6px}
+  .res .badge b{font-size:28px}
+}
+@media (max-width:380px){
+  body{padding-left:7px; padding-right:7px}
+  .floor{gap:4px}
+  .cluster{padding:5px 2px; gap:4px}
+}
+@media (min-width:1000px){ .floor{gap:34px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- 13 · PRINT (listă curată pe hârtie, ca rezervă la intrare) ---- */
+@media print{
+  *{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  body{background:#fff; padding:0; font-size:12px}
+  .controls,#vmap,.legend,.flourish,#results,#sheet,.listbar,.key,#viewhint{display:none!important}
+  header{padding:0 0 8px}
+  .stats{display:none}
+  header::after{content:"Listă invitați — verificare la intrare"; display:block; font-size:11px; color:#555; margin-top:4px}
+  #vlist{display:block!important}
+  .tbl{break-inside:avoid; box-shadow:none; border:1px solid #bbb}
+  .tbl .tbody{display:block!important}
+  .grow{break-inside:avoid}
+  .thead{background:#eee!important; color:#000!important}
+  .thead .tnum{background:#fff!important; color:#000!important; border:1px solid #000}
+  .thead .chev{display:none}
+  .listgrid{grid-template-columns:1fr 1fr; gap:8px}
+}
+</style>
+</head>
+<body class="view-map">
+<div class="page">
+
+  <!-- ===================== ANTET ===================== -->
+  <header>
+    <div class="kicker">Nuntă</div>
+    <div class="monogram">Alex <span class="amp">&amp;</span> Iza</div>
+    <div class="subtitle">Așezarea invitaților</div>
+    <div class="flourish"><span class="dot" aria-hidden="true">❦</span></div>
+    <div class="stats">
+      <div class="stat"><b id="sP">–</b><span>persoane</span></div>
+      <div class="stat"><b id="sG">–</b><span>grupuri</span></div>
+      <div class="stat"><b id="sT">–</b><span>mese</span></div>
+      <div class="stat staff"><b id="sS">–</b><span>staff</span></div>
+    </div>
+  </header>
+
+  <!-- ===================== CĂUTARE + TAB-URI ===================== -->
+  <!-- doar bara de căutare e lipită (sticky) la scroll -->
+  <div class="controls">
+    <div class="inner">
+      <div class="searchbar">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg></span>
+        <input id="q" type="search" inputmode="search" placeholder="Caută un invitat după nume…" autocomplete="off" spellcheck="false" aria-label="Caută un invitat">
+        <button class="clr" id="clr" type="button" aria-label="Șterge căutarea">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- tab-uri + legendă + ajutor — NU sunt sticky, curg odată cu pagina -->
+  <div class="subcontrols">
+    <div class="inner">
+      <div class="tabs" role="tablist" aria-label="Mod de vizualizare">
+        <button class="tab on" data-v="map" role="tab" aria-selected="true"><span aria-hidden="true">🗺️</span> Harta sălii</button>
+        <button class="tab" data-v="list" role="tab" aria-selected="false"><span aria-hidden="true">📋</span> Liste pe mese</button>
+      </div>
+      <div class="key" id="key" aria-hidden="true"></div>
+      <div id="viewhint"></div>
+    </div>
+  </div>
+
+  <!-- ===================== REZULTATE CĂUTARE ===================== -->
+  <div id="results"></div>
+  <div id="resultsSummary" class="visually-hidden" aria-live="polite"></div>
+
+  <!-- ===================== HARTA SĂLII ===================== -->
+  <div id="vmap">
+    <div class="room">
+
+      <!-- sus: Masa Mirilor -->
+      <div class="topzone">
+        <div class="anchor">Capul sălii</div>
+        <div id="headTable"></div>
+      </div>
+
+      <!-- podea -->
+      <div class="floor">
+        <div class="floor-col">
+          <div class="col-cap">Stânga sălii</div>
+          <div id="zoneL" class="zone"></div>
+        </div>
+        <div class="floor-center">
+          <div class="dancefloor" aria-hidden="true">
+            <span class="vt">Horă</span>
+            <div class="ring">💃🕺</div>
+            <span class="vt">Ring de dans</span>
+          </div>
+        </div>
+        <div class="floor-col">
+          <div class="col-cap">Dreapta sălii</div>
+          <div id="zoneR" class="zone"></div>
+        </div>
+      </div>
+
+      <div class="entrance">⤵ &nbsp;Intrare · Hol</div>
+
+    </div>
+  </div>
+
+  <!-- ===================== LISTE PE MESE ===================== -->
+  <div id="vlist">
+    <div id="listHead"></div><!-- Masa Mirilor — singură, centrată sus -->
+    <div class="listbar"><button id="toggleAll" type="button">Deschide toate mesele</button></div>
+    <div class="listgrid" id="listgrid"></div>
+  </div>
+
+  <!-- ===================== NOTĂ JOS ===================== -->
+  <div class="legend">
+    <div class="legend-fl" aria-hidden="true">❦</div>
+    Scrie un nume în căutare ca să vezi instant masa. Pe hartă, <b>apasă pe o masă</b> ca să vezi cine stă acolo.<br>
+    Mesele sunt grupate ca pe zar (câte 5) · sus, la mijloc, e <b>Masa Mirilor</b> · în centru <b>ringul de horă</b> · pe dreapta sunt <b>scena formației</b> și mesele de staff (<b>Masa 22</b> formație, <b>Masa 25</b> staff) · jos e intrarea.
+  </div>
+
+</div><!-- /page -->
+
+<!-- ===================== DETALIU MASĂ (sheet) ===================== -->
+<div id="sheet" aria-hidden="true">
+  <div class="sheet-bg" data-close></div>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <button class="sheet-x" id="sheetClose" data-close aria-label="Închide">✕</button>
+    <div class="sheet-head">
+      <span class="sheet-ic" id="sheetIc" aria-hidden="true"></span>
+      <div><div class="sheet-title" id="sheetTitle"></div><div class="sheet-meta" id="sheetMeta"></div></div>
+    </div>
+    <ul class="sheet-list" id="sheetList"></ul>
+  </div>
+</div>
+
+<script>
+/* #######################################################################
+   #  PARTEA 1 — DATE.  AICI EDITEZI.  (singurul loc pe care îl atingi)   #
+   #  1.1 CONFIG · 1.2 GUESTS · 1.3 STAFF · 1.4 FLOOR                      #
+   ####################################################################### */
+
+/* (1.1) · CONFIG — singura setare globală */
+const CONFIG = { headTable: 0 };
+
+/* ════════════════════════════════════════════════════════════════════════
+   👉 (1.2)  INVITAȚI   —   un rând = un grup (familie / cuplu / persoană)
+   ─────────────────────────────────────────────────────────────────────────
+   Format:   { name: "Nume afișat", pers: <nr. persoane>, masa: <nr. masă> }
+       • masa 0 = Masa Mirilor (capul sălii)
+       • MUTĂ pe cineva   → schimbă doar numărul de la „masa"
+       • ADAUGĂ           → copiază un rând întreg și schimbă datele
+       • ȘTERGE           → șterge tot rândul (cu virgula de la final)
+   Grupat și sortat după „masa". Antetul fiecărei mese arată câte grupuri /
+   persoane are. Numerele „pers" și „masa" sunt aliniate, ușor de verificat.
+   TOTAL: 96 grupuri · 205 persoane   (se recalculează automat sus în pagină)
+   ════════════════════════════════════════════════════════════════════════ */
+const GUESTS = [
+
+  /* ── MASA MIRILOR (capul sălii)  ·  2 grupuri · 4 persoane ── */
+  { name: "Alex și Iza (mirii)",                              pers: 2, masa:  0 },
+  { name: "Costy și Ana (nașii)",                             pers: 2, masa:  0 },
+
+  /* ── MASA 1  ·  5 grupuri · 10 persoane ── */
+  { name: "Fam. Tănăsoiu Gheorghe",                           pers: 1, masa:  1 },
+  { name: "Fam. Tănăsoiu Ionela",                             pers: 4, masa:  1 },
+  { name: "Șofer Autocar",                                    pers: 1, masa:  1 },
+  { name: "Fam. Fusa",                                        pers: 2, masa:  1 },
+  { name: "Fam. Feldioara",                                   pers: 2, masa:  1 },
+
+  /* ── MASA 2  ·  4 grupuri · 9 persoane ── */
+  { name: "Cîlea Elena (Mama ginere)",                        pers: 1, masa:  2 },
+  { name: "Fam. Popescu Laurentiu & Elena (Parinti mireasa)", pers: 2, masa:  2 },
+  { name: "Fam. Cârjan Mariana (1 meniu vegetarian)",         pers: 3, masa:  2 },
+  { name: "Fam. Vințan Dorina",                               pers: 3, masa:  2 },
+
+  /* ── MASA 3  ·  4 grupuri · 10 persoane ── */
+  { name: "Fam. Milica Nastasiu Pârvu",                       pers: 2, masa:  3 },
+  { name: "Fam. Ianc",                                        pers: 2, masa:  3 },
+  { name: "Fam. Prejbeanu (Ana și Vasile)",                   pers: 2, masa:  3 },
+  { name: "Fam. Prejbeanu (Angela și Cătălin)",               pers: 4, masa:  3 },
+
+  /* ── MASA 4  ·  5 grupuri · 10 persoane ── */
+  { name: "Fam. Banța Puica",                                 pers: 2, masa:  4 },
+  { name: "Fam. Richter",                                     pers: 2, masa:  4 },
+  { name: "Fam. Ciocâltea Amelia",                            pers: 2, masa:  4 },
+  { name: "Fam. Alin si Adina",                               pers: 2, masa:  4 },
+  { name: "Fam. Ionela Iordănescu",                           pers: 2, masa:  4 },
+
+  /* ── MASA 5  ·  5 grupuri · 10 persoane ── */
+  { name: "Fam. Huștea",                                      pers: 2, masa:  5 },
+  { name: "Fam. Blendea",                                     pers: 2, masa:  5 },
+  { name: "Fam. Argint",                                      pers: 2, masa:  5 },
+  { name: "Fam. Bejenaru",                                    pers: 2, masa:  5 },
+  { name: "Fam. Vezure",                                      pers: 2, masa:  5 },
+
+  /* ── MASA 6  ·  3 grupuri · 7 persoane ── */
+  { name: "Fam. Vega Sandi și Costinela",                     pers: 2, masa: 6 },
+  { name: "Fam. Ghițulescu Roxana și Ștefania",               pers: 2, masa: 6 },
+  { name: "Fam. Enache Lavinia",                              pers: 3, masa: 6 },
+
+  /* ── MASA 7  ·  5 grupuri · 11 persoane ── */
+  { name: "Fam. Cîlea (bunici ginere; 1 meniu vegetarian)",   pers: 3, masa:  7 },
+  { name: "Fam. Hodorog Ileana",                              pers: 2, masa:  7 },
+  { name: "Fam. Isac Maria",                                  pers: 2, masa:  7 },
+  { name: "Fam. Bădescu Gabriela",                            pers: 1, masa:  7 },
+
+  /* ── MASA 8  ·  5 grupuri · 10 persoane ── */
+  { name: "Fam. Catargiu Ionuț",                              pers: 2, masa:  8 },
+  { name: "Fam. Iordache Gheorghe",                           pers: 2, masa:  8 },
+  { name: "Fam. Iordache Valentin",                           pers: 2, masa:  8 },
+  { name: "Fam. Stancu Cristina",                             pers: 2, masa:  8 },
+  { name: "Fam. Stan Cristina și Ionuț",                      pers: 2, masa:  8 },
+
+  /* ── MASA 9  ·  5 grupuri · 9 persoane ── */
+  { name: "Fam. Frunză Georgiana",                            pers: 2, masa:  9 },
+  { name: "Fam. Șopârlă Bogdan",                              pers: 2, masa:  9 },
+  { name: "Fam. Pătru Adelina",                               pers: 2, masa:  9 },
+  { name: "Fam. Sanda Gheorghe",                              pers: 2, masa:  9 },
+  { name: "Fam. Ciobanu Ioana",                               pers: 1, masa:  9 },
+
+  /* ── MASA 10  ·  5 grupuri · 10 persoane ── */
+  { name: "Fam. Iana Cosmin",                                 pers: 2, masa: 10 },
+  { name: "Fam. Crăciun Daniel",                              pers: 2, masa: 10 },
+  { name: "Fam. Tomescu Sorin",                               pers: 2, masa: 10 },
+  { name: "Fam. Ancuța Adriana",                              pers: 2, masa: 10 },
+  { name: "Fam. Costea Sorin",                                pers: 2, masa: 10 },
+
+  /* ── MASA 11  ·  5 grupuri · 10 persoane ── */
+  { name: "Fam. Ancuța Vasilică",                             pers: 2, masa:  11 },
+  { name: "Fam. Popa Daniel",                                 pers: 2, masa:  11 },
+  { name: "Fam. Hodorog Nicoleta",                            pers: 2, masa:  11 },
+  { name: "Fam. Florea Gheorghe",                             pers: 2, masa:  11 },
+  { name: "Fam. Vulpe Daniel",                                pers: 2, masa:  11 },
+
+  /* ── MASA 12  ·  5 grupuri · 10 persoane ── */
+  { name: "Fam. Hodorog Ion",                                 pers: 2, masa: 12 },
+  { name: "Fam. Hodorog Andrei",                              pers: 2, masa: 12 },
+  { name: "Fam. Hodorog Daniel",                              pers: 2, masa: 12 },
+  { name: "Fam. Tatiana și Ovidiu",                           pers: 2, masa: 12 },
+  { name: "Fam. Hodorog Cătălin",                             pers: 2, masa: 12 },
+
+  /* ── MASA 13  ·  2 grupuri · 6 persoane ── */
+  { name: "Fam. Bojan Radu",                                  pers: 2, masa: 13 },
+  { name: "Fam. Brădeanu Bogdan",                             pers: 4, masa: 13 },
+  { name: "Fam. Răducu",                                      pers: 3, masa: 13 },
+
+  /* ── MASA 14  ·  3 grupuri · 7 persoane ── */
+  { name: "Luca Andrei",                                      pers: 1, masa: 14 },
+  { name: "Fam. Munteanu Ionuț (două meniuri de copii)",      pers: 4, masa: 14 },
+  { name: "Sava Mihaela",                                     pers: 2, masa: 14 },
+
+  /* ── MASA 15  ·  5 grupuri · 10 persoane ── */
+  { name: "Fam. Săraru Magda",                                pers: 2, masa: 15 },
+  { name: "Fam. Giubega Aurica",                              pers: 2, masa: 15 },
+  { name: "Fam. Lupu Ion",                                    pers: 2, masa: 15 },
+  { name: "Fam. Dina Monica",                                 pers: 2, masa: 15 },
+  { name: "Fam. Romcescu Vali",                               pers: 2, masa: 15 },
+
+  /* ── MASA 16  ·  2 grupuri · 8 persoane ── */
+  { name: "Fam. Paulescu Marius",                             pers: 1, masa: 16 },
+  { name: "Fam. Blaj Ionel",                                  pers: 7, masa: 16 },
+
+  /* ── MASA 17  ·  1 grupuri · 9 persoane ── */
+  { name: "Fam. Anghel Constantin (1 meniu de copil)",        pers: 9, masa: 17 },
+
+  /* ── MASA 18  ·  6 grupuri · 10 persoane ── */
+  { name: "Cârcăie Ionel",                                    pers: 1, masa: 18 },
+  { name: "Fam. Rădăcină Marian",                             pers: 2, masa: 18 },
+  { name: "Fam. Neicuțescu Florin",                           pers: 2, masa: 18 },
+  { name: "Fam. Neicuțescu Ion",                              pers: 2, masa: 18 },
+  { name: "Aristică Tică",                                    pers: 1, masa: 18 },
+  { name: "Fam. Schintee Nelu",                               pers: 2, masa: 18 },
+
+  /* ── MASA 19  ·  5 grupuri · 9 persoane ── */
+  { name: "Popescu Narcisa (sora mireasa)",                   pers: 1, masa: 19 },
+  { name: "Fam. Gama Andreea și Cătălin (Suciu)",             pers: 2, masa: 19 },
+  { name: "Chivu Elena",                                      pers: 2, masa: 19 },
+  { name: "Croicu Diana",                                     pers: 2, masa: 19 },
+  { name: "Constantin Andrada",                               pers: 2, masa: 19 },
+
+  /* ── MASA 20  ·  4 grupuri · 8 persoane ── */
+  { name: "Fam. Tomiță",                                      pers: 2, masa: 20 },
+  { name: "Fam. Cristi Ciolofan",                             pers: 2, masa: 20 },
+  { name: "Fam. Ticuță",                                      pers: 2, masa: 20 },
+  { name: "Fam. Predescu Adela",                              pers: 2, masa: 20 },
+
+  /* ── MASA 21  ·  5 grupuri · 9 persoane ── */
+  { name: "Vulcan Andrei",                                    pers: 2, masa: 21 },
+  { name: "Vulcan Nicolae",                                   pers: 2, masa: 21 },
+  { name: "Vulcan Mihai (meniu vegetarian)",                  pers: 1, masa: 21 },
+  { name: "Fam. Stanca Laurentiu",                            pers: 2, masa: 21 },
+  { name: "Mihai Constantinescu",                             pers: 2, masa: 21 },
+
+  /* ── MASA 23  ·  liberă (rezervă) ── adaugă rânduri cu  masa: 23 */
+
+  /* ── MASA 24  ·  5 grupuri · 9 persoane ── */
+  { name: "Fam. Sinea Adina",                                 pers: 2, masa: 24 },
+  { name: "Fam. Ciucur Alexandru",                            pers: 2, masa: 24 },
+  { name: "Bîltac Alexandru",                                 pers: 1, masa: 24 },
+  { name: "Fam. Bălașa Cosmin",                               pers: 2, masa: 24 },
+  { name: "Fam. Enuță Ciprian",                               pers: 2, masa: 24 },
+];
+
+/* 👉 (1.3) STAFF — formație (Masa 22) + servicii (Masa 25). Editezi DOAR title / members / icon.
+   Formația face parte tot din staff. NU schimba id / num / kind. */
+const STAFF = {
+  F: { id:'F', num:22, title:"Masa 22 · Staff - Formație", short:"Staff - Formație", icon:"🎵", kind:"formatie",
+       members:[ { name:"Muzicanți (formație live)", pers:10 } ] },
+  S: { id:'S', num:25, title:"Masa 25 · Staff & servicii", short:"Staff", icon:"🛎️", kind:"staff",
+       members:[ { name:"Cocktail bar", pers:2 }, { name:"Fotografi", pers:2 }, { name:"Photo auto stand", pers:2 } ] },
+};
+
+/* 👉 (1.4) HARTA (FLOOR) — fiecare grup de 5 numere = un „zar" (4 colțuri + centru).
+     "F" = Masa 22 (Formație) · "S" = Masa 25 (Staff) · null = loc gol.
+     Ca să muți o masă pe hartă, mută numărul în altă poziție.
+     Scena formației se inserează AUTOMAT între cele 2 zaruri din dreapta. */
+const FLOOR = {
+  left:  [ [1,2,3,4,5], [6,7,8,9,10], [11,12,13,14,15] ],
+  right: [ [16,17,18,19,20], [21,"F",23,24,"S"] ],   // zar jos-dreapta în ordine: 21 · 22(formație "F") · 23(gol) · 24 · 25(staff "S")
+};
+
+
+/* #######################################################################
+   #  PARTEA 2 — MOTORUL.  NU MODIFICA NIMIC SUB ACEASTĂ LINIE.           #
+   ####################################################################### */
+
+/* =====================================================================
+   ARHITECTURĂ — harta codului (pentru debug & modificări)
+   ---------------------------------------------------------------------
+   FLUXUL:  DATE (PARTEA 1) ─► DERIVATE ─► tableInfo() ─► RANDARE ─► INTERACȚIUNE
+            GUESTS/STAFF/FLOOR  ALL_TABLES  model uniform   hartă+liste  căutare+sheet
+                                MESE,ZONE    pt. orice masă
+
+   SECȚIUNI (caută „2.x" ca să sari direct la ele):
+     2.1  Derivate + checkData()   verificare automată (bară roșie la greșeli)
+     2.2  Helperi                  norm(), per(), atTable(), seatsAt(), COL, $()
+     2.3  tableInfo(id)            INIMA — normalizează orice masă într-un obiect
+     2.4  Statistici               numerele din capul paginii
+     2.5  Randare HARTĂ            medallion(), nodeEl(), clusterEl(), renderMap()
+     2.6  Randare LISTE            listPanel(), renderList(), legendă culori
+     2.7  Sincronizare scenă       syncSceneHeight()
+     2.8  Detaliu masă (sheet)     openSheet()/closeSheet() + capcană de focus
+     2.9  Tab-uri                  setView()  (hartă ↔ liste)
+     2.10 Căutare                  runSearch()/locate()
+
+   ID-uri de masă în tot codul:
+     număr 1..N = masă invitați  ·  0 = Masa Mirilor (HEAD)
+     'F' = Masa 22 (formație)    ·  'S' = Masa 25 (staff)
+   REGULĂ: tot ce se afișează despre o masă vine din tableInfo(id). Dacă vrei să
+           schimbi CE se arată, pornește de la tableInfo(). DOM-ul se construiește
+           o singură dată, la încărcare (vezi apelurile renderMap()/renderList()).
+   ===================================================================== */
+
+const HEAD = CONFIG.headTable;   // numărul „Mesei Mirilor" (0)
+
+/* =====================  2.1 · DERIVATE DIN DATE  ===================== */
+/* Tot ce urmează se calculează automat din FLOOR/GUESTS — nu se editează. */
+
+/** Toate id-urile de pe hartă, în ordinea din FLOOR (numere + 'F'/'S' + eventual null). */
+const FLOOR_IDS  = [...FLOOR.left, ...FLOOR.right].flat();
+
+/** Mesele numerotate ale invitaților (1..N), unice și sortate crescător (fără miri/staff). */
+const ALL_TABLES = [...new Set(FLOOR_IDS.filter(x => typeof x === 'number' && x !== HEAD))].sort((a, b) => a - b);
+
+/** Câte „mese" arătăm în statistici = mesele invitaților + Masa Mirilor. */
+const MESE = ALL_TABLES.length + 1;
+
+/** id masă → zona din sală; apare în meta-textul rezultatelor căutării. */
+const ZONE = { [HEAD]: 'Capul sălii' };
+FLOOR.left.flat().forEach(id  => { if(id != null) ZONE[id] = 'Stânga sălii'; });
+FLOOR.right.flat().forEach(id => { if(id != null) ZONE[id] = 'Dreapta sălii'; });
+
+/**
+ * checkData — plasă de siguranță. Dacă editezi greșit datele, pune o bară roșie
+ * sus cu exact ce nu se leagă (în loc să „dispară" un invitat fără să observi).
+ * Verifică:  (1) fiecare invitat e la o masă care chiar există pe hartă;
+ *            (2) nicio masă nu e pusă de două ori în FLOOR.
+ */
+(function checkData(){
+  const valid = new Set([HEAD, ...ALL_TABLES, 'F', 'S']);
+  const probs = [];
+  GUESTS.forEach(g => { if(!valid.has(g.masa)) probs.push(`„${g.name}" → masa ${g.masa} nu există pe hartă`); });
+  const seen = {};
+  FLOOR_IDS.forEach(id => { if(id != null) seen[id] = (seen[id] || 0) + 1; });
+  Object.keys(seen).forEach(k => { if(seen[k] > 1) probs.push(`masa ${k} apare de ${seen[k]} ori în FLOOR`); });
+  if(probs.length){
+    const bar = document.createElement('div');
+    bar.className = 'datawarn';
+    bar.textContent = '⚠️ Verifică datele: ' + probs.join('  ·  ');
+    document.body.insertBefore(bar, document.body.firstChild);
+  }
+})();
+
+/* =====================  2.2 · HELPERI  ===================== */
+
+/** Înlocuiri pentru diacriticele românești (folosite de norm). */
+const DIA = { 'ș':'s','ş':'s','ț':'t','ţ':'t','ă':'a','â':'a','î':'i' };
+
+/**
+ * Normalizează un text pentru căutare: litere mici, FĂRĂ diacritice, spații curățate.
+ * Datorită lui, „soparla" găsește „Șopârlă" și „ tania " găsește „Tatiana".
+ * @param   {string} s  textul brut
+ * @returns {string}    textul normalizat
+ */
+function norm(s){
+  s = (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');  // scoate accentele compuse
+  let o = ''; for(const ch of s) o += (DIA[ch] || ch);                            // + diacriticele românești
+  return o.replace(/\s+/g, ' ').trim();
+}
+
+const per     = n => (n === 1 ? '1 persoană' : n + ' persoane');   // text singular/plural corect
+const atTable = t => GUESTS.filter(g => g.masa === t);             // grupurile de la masa t
+const seatsAt = t => atTable(t).reduce((s, g) => s + g.pers, 0);   // total persoane la masa t
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;          // respectă setarea de sistem
+const COL = { guest:'#79926A', formatie:'#7A6A93', staff:'#566F44', head:'#B28A35' };  // culoare după tipul mesei
+const $ = id => document.getElementById(id);                       // scurtătură pentru getElementById
+
+/* =====================  2.3 · tableInfo (INIMA)  ===================== */
+/**
+ * Transformă ORICE id de masă într-un obiect uniform, folosit peste tot la afișare.
+ * Acceptă: număr (1..N) = masă invitați · 0/HEAD = Masa Mirilor · 'F'/'S' = staff.
+ * @param   {number|string} id
+ * @returns {{ id, num:number, glyph:string, title:string, short:string,
+ *             kind:'head'|'guest'|'formatie'|'staff', seats:number,
+ *             groups:Array<{name:string,pers:number}> }}
+ *   num   = numărul afișat (24/25 la staff)   glyph = ce scrie în medalion/badge ('★', '24'…)
+ *   short = etichetă scurtă ("Masa 5","Mirii")  kind = tipul (pt. culoare/stil)
+ *   seats = total persoane                     groups = rândurile (nume + pers)
+ */
+function tableInfo(id){
+  // Masa Mirilor (capul sălii)
+  if(id === HEAD || id === '0') return { id:HEAD, num:HEAD, glyph:"★", title:"Masa Mirilor", short:"Mirii",
+                                         kind:"head", seats:seatsAt(HEAD), groups:atTable(HEAD) };
+  // Mese de staff (24 = formație, 25 = staff) — datele vin din STAFF
+  if(id === 'F' || id === 'S'){ const s = STAFF[id];
+    return { id, num:s.num, glyph:String(s.num), title:s.title, short:s.short, icon:s.icon, kind:s.kind,
+             seats:s.members.reduce((a, m) => a + m.pers, 0), groups:s.members }; }
+  // Masă obișnuită de invitați (numerotată)
+  const t = +id;
+  return { id:t, num:t, glyph:String(t), title:"Masa " + t, short:"Masa " + t,
+           kind:"guest", seats:seatsAt(t), groups:atTable(t) };
+}
+
+/* =====================  2.4 · STATISTICI (capul paginii)  ===================== */
+$('sP').textContent = GUESTS.reduce((s, g) => s + g.pers, 0);   // persoane (invitați)
+$('sG').textContent = GUESTS.length;                            // grupuri/rânduri
+$('sT').textContent = MESE;                                     // mese invitați + miri
+$('sS').textContent = tableInfo('F').seats + tableInfo('S').seats;  // staff (24 + 25)
+
+/* =====================  2.5 · RANDARE HARTĂ  ===================== */
+
+/**
+ * Desenează „medalionul" mesei: un SVG cu numărul mare în centru și puncte
+ * în jur (un punct = un loc/persoană la masă). Numărul e elementul-cheie.
+ * @param {string|number} num  ce scrie în centru (numărul mesei sau '★')
+ * @param {number} p           câte persoane (= câte puncte, max 14)
+ * @param {string} col         culoarea de contur/puncte (din COL)
+ * @returns {string} markup SVG
+ */
+function medallion(num, p, col){
+  col = col || COL.guest;
+  const cx = 24, cy = 24, R = 17, ring = 22, n = Math.min(Math.max(p, 1), 14);
+  let s = '<svg viewBox="0 0 48 48" aria-hidden="true">';
+  for(let i = 0; i < n; i++){ const a = (i / n) * 2 * Math.PI - Math.PI / 2;   // puncte așezate pe cerc
+    s += `<circle cx="${(cx + ring * Math.cos(a)).toFixed(1)}" cy="${(cy + ring * Math.sin(a)).toFixed(1)}" r="2.2" fill="${col}" opacity=".42"/>`; }
+  s += `<circle cx="${cx}" cy="${cy}" r="${R + 1}" fill="${col}" opacity=".10"/>`;                       // halo
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="#FCF6E8" stroke="${col}" stroke-width="1.4"/>`;     // moneda
+  s += `<text x="${cx}" y="${cy + 6.5}" text-anchor="middle" font-family="Cormorant Garamond,Georgia,serif" font-weight="700" font-size="19" fill="#2E2A22" letter-spacing="-.5">${num}</text>`;
+  return s + '</svg>';
+}
+
+/**
+ * Creează un nod-masă apăsabil pentru hartă (medalion + etichetă + nr. persoane).
+ * Masa goală (0 persoane) primește clasa .empty și scrie „liber".
+ * La click deschide panoul cu detalii (openSheet).
+ * @param {number|string} id
+ * @returns {HTMLButtonElement}
+ */
+function nodeEl(id){
+  const info  = tableInfo(id);
+  const empty = (info.kind === 'guest' && info.seats === 0);
+  const btn = document.createElement('button');
+  btn.className = 'node kind-' + info.kind + (empty ? ' empty' : '');
+  btn.type = 'button';
+  btn.dataset.t = id;
+  const lbl = (info.kind === 'guest') ? info.short
+            : (info.kind === 'formatie') ? '🎵 Staff - Formație' : '🛎️ Staff';
+  const sub = empty ? 'liber' : per(info.seats);
+  btn.innerHTML = `<span class="med">${medallion(info.num, info.seats, COL[info.kind])}</span>
+     <span class="node-lbl">${lbl}</span><span class="node-sub">${sub}</span>`;
+  btn.addEventListener('click', () => openSheet(id));
+  return btn;
+}
+
+/** Blocul „Scenă / Formație live" — decor, NU e o masă; se inserează între cele 2 zaruri din dreapta. */
+function sceneBlockEl(){
+  const d = document.createElement('div');
+  d.className = 'sceneblock';
+  d.setAttribute('aria-hidden', 'true');
+  d.innerHTML =
+    `<div class="sb-glow"></div>
+     <div class="sb-title">🎶 Scenă</div>
+     <div class="sb-sub">Formație live</div>
+     <div class="sb-pods"><span>🎤</span><span>🎻</span><span>🎹</span><span>🎸</span><span>🥁</span></div>
+     <div class="sb-edge"></div>
+     <div class="sb-foot">aici cântă formația</div>`;
+  return d;
+}
+/**
+ * Construiește un „zar" (quincunx) de mese: max 5 poziții, în ordinea
+ *   [sus-stânga, sus-dreapta, CENTRU, jos-stânga, jos-dreapta].
+ * `null` lasă poziția goală. Pozițiile vin din clasele .p-tl/.p-tr/.p-c/.p-bl/.p-br.
+ * @param {Array<number|string|null>} ids  exact ordinea pozițiilor pe zar
+ * @returns {HTMLDivElement}
+ */
+function clusterEl(ids){
+  const c = document.createElement('div');
+  c.className = 'cluster';
+  const pips = ['p-tl', 'p-tr', 'p-c', 'p-bl', 'p-br'];   // ordinea pozițiilor pe zar
+  ids.forEach((id, i) => { if(id == null) return; const n = nodeEl(id); n.classList.add(pips[i]); c.appendChild(n); });
+  return c;
+}
+
+/** Construiește bannerul „Masa Mirilor" din capul sălii (sus-centru pe hartă). */
+function renderHead(){
+  const info = tableInfo(HEAD);
+  const el = document.createElement('button');
+  el.className = 'headbar'; el.type = 'button'; el.dataset.t = String(HEAD);
+  el.innerHTML =
+    `<div class="crown" aria-hidden="true">♛</div>
+     <div class="h-title">Masa Mirilor</div>
+     <div class="h-meta">capul sălii · ${per(info.seats)} · ${info.groups.length} grupuri</div>
+     <div class="h-people">${info.groups.map(g => `<span class="chip">${g.name} · ${g.pers}</span>`).join('')}</div>`;
+  el.addEventListener('click', () => openSheet(HEAD));
+  $('headTable').appendChild(el);
+}
+/**
+ * Desenează harta sălii: bannerul mirilor sus, apoi zarurile din FLOOR.left în
+ * coloana stângă și cele din FLOOR.right în coloana dreaptă. Scena formației se
+ * inserează AUTOMAT între primul și al doilea zar din dreapta (înainte de i===1).
+ */
+function renderMap(){
+  renderHead();
+  const L = $('zoneL'), R = $('zoneR');
+  FLOOR.left.forEach(ids => L.appendChild(clusterEl(ids)));
+  FLOOR.right.forEach((ids, i) => {
+    if(i === 1) R.appendChild(sceneBlockEl());   // scena, între cele 2 zaruri din dreapta
+    R.appendChild(clusterEl(ids));
+  });
+}
+
+/* =====================  2.6 · RANDARE LISTE  ===================== */
+
+/**
+ * Creează un panou pliabil pentru o masă (antet apăsabil + lista de grupuri).
+ * Masa goală arată un rând „rezervă". Masa Mirilor (head) e deschisă din start.
+ * @param {ReturnType<typeof tableInfo>} info
+ * @param {string} extra  clase CSS în plus (' head2' / ' staff2')
+ * @returns {HTMLDivElement}
+ */
+function listPanel(info, extra){
+  const d = document.createElement('div');
+  d.className = 'tbl' + extra + (info.kind === 'head' ? ' open' : '');
+  d.dataset.t = info.id;
+  d.innerHTML =
+    `<div class="thead">
+       <span class="tnum">${info.glyph}</span>
+       <span class="ttx"><span class="ttl">${info.title}</span>
+         <span class="rt">${per(info.seats)} · ${info.groups.length} grupuri</span></span>
+       <span class="chev" aria-hidden="true">▾</span>
+     </div>
+     <div class="tbody">${info.groups.length
+        ? info.groups.map(g => `<div class="grow" data-n="${norm(g.name)}">
+            <div class="gn">${g.name}</div><div class="gp">${per(g.pers)}</div></div>`).join('')
+        : `<div class="grow empty"><div class="gn">Masă liberă (rezervă) — fără invitați</div></div>`}</div>`;
+  d.querySelector('.thead').addEventListener('click', () => d.classList.toggle('open'));
+  return d;
+}
+/**
+ * Construiește lista pe mese:
+ *   • Masa Mirilor — singură, centrată sus (în #listHead);
+ *   • apoi mesele numerotate 1..N și mesele de staff (24, 25) — în grila #listgrid,
+ *     deci primul rând începe cu „Masa 1, Masa 2, Masa 3…".
+ */
+function renderList(){
+  $('listHead').appendChild(listPanel(tableInfo(HEAD), ' head2'));        // sus, centrat
+  const grid = $('listgrid');
+  ALL_TABLES.forEach(t => grid.appendChild(listPanel(tableInfo(t), ''))); // Masa 1, 2, 3 …
+  ['F', 'S'].forEach(id => grid.appendChild(listPanel(tableInfo(id), ' staff2')));  // 24, 25
+}
+
+/* construiește pagina o singură dată, la încărcare */
+renderMap();
+renderList();
+
+/* Legenda de culori (generată din COL ca să rămână mereu sincronă cu harta). */
+$('key').innerHTML = [['head','Mirii'], ['guest','Invitați'],
+    ['formatie', STAFF.F.short + ' · ' + STAFF.F.num], ['staff', STAFF.S.short + ' · ' + STAFF.S.num]]
+  .map(([k, l]) => `<span><i style="background:${COL[k]}"></i>${l}</span>`).join('')
+  + `<span><i class="d"></i>Masă liberă</span>`;
+
+/* =====================  2.7 · SINCRONIZARE SCENĂ  ===================== */
+/**
+ * Ține blocul „Scenă" exact cât un zar de mese (simetrie perfectă), măsurând în
+ * timp real înălțimea unui zar. Reapelat la încărcare, după ce se încarcă fontul,
+ * la redimensionare și la rotirea ecranului (înălțimea diferă cu lățimea).
+ */
+function syncSceneHeight(){
+  const c = document.querySelector('#zoneL .cluster'), s = document.querySelector('.sceneblock');
+  if(c && s){ const h = Math.round(c.getBoundingClientRect().height); if(h > 0) s.style.minHeight = h + 'px'; }
+}
+syncSceneHeight();
+window.addEventListener('load', syncSceneHeight);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(syncSceneHeight);
+let _rz; window.addEventListener('resize', () => { clearTimeout(_rz); _rz = setTimeout(syncSceneHeight, 120); });
+window.addEventListener('orientationchange', () => setTimeout(syncSceneHeight, 200));
+
+/* =====================  2.8 · DETALIU MASĂ (sheet)  ===================== */
+const sheet = $('sheet');
+let lastFocused = null;            // unde era focusul înainte de a deschide panoul
+
+/**
+ * Deschide panoul cu cine stă la masa `id` (titlu, total, lista de grupuri).
+ * Blochează scroll-ul paginii și mută focusul pe butonul de închidere (accesibilitate).
+ * @param {number|string} id
+ */
+function openSheet(id){
+  const info = tableInfo(id);
+  lastFocused = document.activeElement;
+  const ic = $('sheetIc');
+  ic.textContent = info.glyph; ic.className = 'sheet-ic kind-' + info.kind;
+  $('sheetTitle').textContent = info.title;
+  $('sheetMeta').textContent  = per(info.seats) + ' · ' + info.groups.length + ' grupuri';
+  $('sheetList').innerHTML = info.groups.length
+    ? info.groups.map(g => `<li><span>${g.name}</span><span class="ct">${per(g.pers)}</span></li>`).join('')
+    : `<li><span style="color:var(--muted)">Momentan fără invitați (masă liberă / rezervă).</span></li>`;
+  sheet.classList.add('on'); sheet.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  $('sheetClose').focus();
+}
+
+/** Închide panoul, deblochează scroll-ul și readuce focusul de unde era. */
+function closeSheet(){
+  if(!sheet.classList.contains('on')) return;
+  sheet.classList.remove('on'); sheet.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  if(lastFocused && lastFocused.focus) lastFocused.focus();
+}
+sheet.querySelectorAll('[data-close]').forEach(e => e.addEventListener('click', closeSheet));
+document.addEventListener('keydown', e => {
+  if(!sheet.classList.contains('on')) return;
+  if(e.key === 'Escape'){ closeSheet(); return; }
+  if(e.key === 'Tab'){                                   // capcană de focus în dialog
+    const f = sheet.querySelectorAll('button');
+    if(!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+});
+
+/* =====================  2.9 · TAB-URI (hartă ↔ liste)  ===================== */
+const vmap = $('vmap'), vlist = $('vlist'), viewhint = $('viewhint');
+
+/**
+ * Comută între „Harta sălii" și „Liste pe mese": marchează tab-ul activ,
+ * setează clasa pe <body> (view-map/view-list), arată/ascunde vizualizările
+ * și schimbă textul de ajutor. La revenirea pe hartă re-sincronizează scena.
+ * @param {'map'|'list'} v
+ */
+function setView(v){
+  document.querySelectorAll('.tab').forEach(x => {
+    const on = x.dataset.v === v;
+    x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  document.body.classList.toggle('view-map',  v === 'map');
+  document.body.classList.toggle('view-list', v === 'list');
+  vmap.style.display  = (v === 'map')  ? 'block' : 'none';
+  vlist.style.display = (v === 'list') ? 'block' : 'none';
+  viewhint.innerHTML = (v === 'map')
+    ? '<span aria-hidden="true">🗺️</span> Vezi unde e fiecare masă · apasă o masă ca să vezi cine stă acolo.'
+    : '<span aria-hidden="true">📋</span> Listă completă, masă cu masă — bună de derulat și de tipărit.';
+  if(v === 'map') syncSceneHeight();
+}
+document.querySelectorAll('.tab').forEach(tb => tb.addEventListener('click', () => setView(tb.dataset.v)));
+setView('map');
+const activeView = () => document.body.classList.contains('view-list') ? 'list' : 'map';
+
+/* Butonul „Deschide / Închide toate" — pliază/depliază toate mesele din liste. */
+let allOpen = false;
+$('toggleAll').addEventListener('click', () => {
+  allOpen = !allOpen;
+  document.querySelectorAll('#vlist .tbl').forEach(t => t.classList.toggle('open', allOpen));
+  $('toggleAll').textContent = allOpen ? 'Închide toate mesele' : 'Deschide toate mesele';
+});
+
+/* =====================  2.10 · CĂUTARE  ===================== */
+
+/**
+ * „Du-mă la masă" dintr-un rezultat: derulează la masă și o evidențiază GRAFIC.
+ * NU deschide panoul cu invitați — acela apare doar dacă apeși direct pe masă.
+ * Pe hartă scoate în evidență nodul; în liste deschide panoul mesei.
+ * @param {number|string} id
+ */
+function locate(id){
+  if(activeView() === 'map'){
+    const el = document.querySelector('#vmap [data-t="' + id + '"]');
+    if(el){ el.classList.add('hl'); el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' }); }
+  } else {
+    const tbl = document.querySelector('.tbl[data-t="' + id + '"]');
+    if(tbl){ tbl.classList.add('open'); tbl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' }); }
+  }
+}
+
+/* Index de căutare = invitați + staff (caut și după rolurile de staff: „formatie", „foto"…). */
+const STAFF_SEARCH = Object.values(STAFF).flatMap(s => [
+  { name: s.short, pers: s.members.reduce((a, m) => a + m.pers, 0), masa: s.id },
+  ...s.members.map(m => ({ name: m.name, pers: m.pers, masa: s.id })),
+]);
+const SEARCH_ITEMS = [...GUESTS, ...STAFF_SEARCH];
+
+const q = $('q'), clr = $('clr'), results = $('results'), summary = $('resultsSummary');
+
+/**
+ * Evidențiază în nume TOATE cuvintele căutate (fără diacritice, în orice ordine).
+ * Construiește o „mască" de poziții marcate, apoi le împachetează în <mark>.
+ * @param {string}   name    numele original (cu diacritice)
+ * @param {string[]} tokens  cuvintele căutate, deja normalizate
+ * @returns {string} numele cu porțiunile găsite în <mark>
+ */
+function highlight(name, tokens){
+  const nn = norm(name);
+  if(nn.length !== name.length) return name;            // siguranță: dacă normalizarea schimbă lungimea
+  const mark = new Array(name.length).fill(false);
+  tokens.forEach(t => { if(!t) return;
+    for(let from = 0, i; (i = nn.indexOf(t, from)) !== -1; from = i + t.length)
+      for(let k = i; k < i + t.length; k++) mark[k] = true;
+  });
+  let out = '', open = false;
+  for(let k = 0; k < name.length; k++){
+    if(mark[k] && !open){ out += '<mark>'; open = true; }
+    else if(!mark[k] && open){ out += '</mark>'; open = false; }
+    out += name[k];
+  }
+  return out + (open ? '</mark>' : '');
+}
+/** Stilul „insignei" din rezultat: clasă, numărul mare și eticheta (MASA/MIRII/STAFF). */
+function badgeFor(masa){
+  if(masa === HEAD)                  return { cls:' h', big:'★', lab:'MIRII' };
+  if(masa === 'F' || masa === 'S')   return { cls:' s', big:tableInfo(masa).num, lab:'STAFF' };
+  return { cls:'', big:masa, lab:'MASA' };
+}
+
+/** Resetează evidențierile din ambele vizualizări când căutarea e goală. */
+function clearSearchState(){
+  document.querySelectorAll('#vmap [data-t]').forEach(c => c.classList.remove('hl', 'dim'));
+  document.querySelectorAll('.grow').forEach(r => { r.style.display = ''; r.classList.remove('match'); });
+  document.querySelectorAll('.tbl').forEach(t => t.classList.remove('hide'));
+}
+/**
+ * Rulează la fiecare tastare. Caută pe CUVINTE, în orice ordine și fără diacritice
+ * („andrei vulcan" găsește „Vulcan Andrei"): un nume e rezultat dacă FIECARE cuvânt
+ * căutat se regăsește în el. Afișează cardurile de rezultat și evidențiază grafic
+ * masa pe hartă (și o filtrează în liste). NU deschide automat panoul cu invitați.
+ */
+function runSearch(){
+  const term = q.value.trim();
+  clr.classList.toggle('on', !!term);
+  if(!term){ results.style.display = 'none'; results.innerHTML = ''; summary.textContent = ''; clearSearchState(); return; }
+
+  const tokens  = norm(term).split(/\s+/).filter(Boolean);   // cuvintele căutate, normalizate
+  const matches = nn => tokens.every(t => nn.includes(t));   // toate cuvintele prezente (orice ordine)
+  const hits    = SEARCH_ITEMS.filter(g => matches(norm(g.name)));
+  results.style.display = 'block';
+
+  if(hits.length === 0){
+    results.innerHTML = `<div class="nores"><span class="big" aria-hidden="true">🔍</span>Niciun invitat găsit pentru „${term}".<br>Verifică ortografia sau caută doar după nume ori prenume.</div>`;
+    summary.textContent = 'Niciun rezultat';
+  } else {
+    const tot = hits.reduce((s, g) => s + g.pers, 0);
+    results.innerHTML =
+      `<div class="res-head">${hits.length} rezultat${hits.length > 1 ? 'e' : ''} · ${per(tot)} · apasă ca să localizezi masa</div>` +
+      hits.map(g => { const b = badgeFor(g.masa);
+        return `<button class="res" type="button" data-t="${g.masa}">
+          <span class="res-tx"><span class="nm">${highlight(g.name, tokens)}</span>
+            <span class="meta">${per(g.pers)} · ${ZONE[g.masa] || ''}</span></span>
+          <span class="badge${b.cls}"><span>${b.lab}</span><b>${b.big}</b></span>
+          <span class="chev" aria-hidden="true">›</span></button>`; }).join('');
+    summary.textContent = `${hits.length} rezultate, ${tot} persoane`;
+    results.querySelectorAll('.res').forEach(r => r.addEventListener('click', () => locate(r.dataset.t)));
+  }
+
+  /* evidențiază grafic mesele găsite pe hartă; filtrează rândurile în liste */
+  const hitTables = new Set(hits.map(g => String(g.masa)));
+  document.querySelectorAll('#vmap [data-t]').forEach(c => {
+    const on = hitTables.has(String(c.dataset.t));
+    c.classList.toggle('hl', on); c.classList.toggle('dim', !on);
+  });
+  document.querySelectorAll('.tbl').forEach(tb => {
+    const on = hitTables.has(String(tb.dataset.t));
+    tb.classList.toggle('hide', !on); if(on) tb.classList.add('open');
+  });
+  document.querySelectorAll('.grow').forEach(r => {
+    const m = r.dataset.n && matches(r.dataset.n);
+    r.style.display = m ? '' : 'none'; r.classList.toggle('match', !!m);
+  });
+}
+q.addEventListener('input', runSearch);
+clr.addEventListener('click', () => { q.value = ''; runSearch(); q.focus(); });
+</script>
+</body>
+</html>
